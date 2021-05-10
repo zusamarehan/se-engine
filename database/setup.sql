@@ -1,5 +1,8 @@
 -- # add timescaledb extension to the current database
 CREATE EXTENSION IF NOT EXISTS timescaledb;
+-- # add uuid extension to the current database
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
 -- # drop the table
 DROP TABLE IF EXISTS success_logger;
 
@@ -9,7 +12,7 @@ DROP TABLE IF EXISTS success_logger;
 CREATE TABLE success_logger (
     id uuid not null,
     data json,
-    processed text default false,
+    processed boolean default false,
     time timestamptz not null default now()
 );
 -- # create hypertable

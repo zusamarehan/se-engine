@@ -25,7 +25,7 @@ app.get('/', function (req, res) {
 // GET Receiver
 app.get('/success/receiver', function (req, res) {
     knex
-        .select("id", "data", "time")
+        .select("id", "data", "processed", "time")
         .from("success_logger")
         .then(function(result) {
             res.json({ success: true, data: result });
@@ -47,13 +47,21 @@ app.post('/success/receiver', function (req, res) {
 // GET - Classifier
 app.get('/success/classifier', function(req, res) {
     knex
-        .select("data", "time", "processed")
+        .select("id", "data", "time", "processed")
         .from("success_logger")
         .where('processed', false)
         .orderBy('time', 'asc')
         .then(function(result) {
             result.forEach(function (item, index) {
                 classify.classifier(item);
+                knex('success_logger')
+                    .where('id', item.id)
+                    .update('processed', true)
+                    .then(function(res) {
+                        console.log({ success: true, message: 'ok' })
+                    }).catch(function(err) {
+                        console.log({ success: true, message: err });
+                    })
             })
             res.json({ success: false, message: 'ok' });
         }).catch(function(err) {
@@ -81,6 +89,44 @@ app.get('/success/classifier/invalid', function (req, res) {
         }).catch(function(err) {
         res.json({ success: false, message: err });
     })
+})
+
+// Data Dump
+app.post('/dump', function (req, res) {
+    for(let i = 0; i <= 500; i++) {
+        knex('success_logger').insert({
+            "data" : {
+                "slug": "acmeinc",
+                "productId": uuidv4(),
+                "projectId": uuidv4(),
+                "userEmail": "usama.rehan@success.app",
+                "data" : {
+                    'value': Math.random()
+                }
+            },
+            "id" : uuidv4(),
+        }).then(function(result) {
+            res.json({ success: true, message: 'ok' });
+        }).catch(function(err) {
+            res.json({ success: false, message: err });
+        })
+    }
+    for(let i = 0; i <= 500; i++) {
+        knex('success_logger').insert({
+            "data" : {
+                "slug": "acmeinc",
+                "productId": uuidv4(),
+                "projectId": uuidv4(),
+                "userEmail": "usama.rehan@success.app",
+                "data" : 12
+            },
+            "id" : uuidv4(),
+        }).then(function(result) {
+            res.json({ success: true, message: 'ok' });
+        }).catch(function(err) {
+            res.json({ success: false, message: err });
+        })
+    }
 })
 app.listen(8081, () => {
     console.log('Application listening on port 8081!');
